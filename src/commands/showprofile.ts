@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { Client, CommandInteraction, TextChannel } from 'discord.js';
+import { profiles } from '../bot';
 
 export const commandMeta = new SlashCommandBuilder()
   .setName('showprofile')
@@ -21,10 +22,13 @@ export async function execute(interaction: CommandInteraction, client: Client) {
     return;
   }
 
+  const profileUsername: string =
+    interaction.options.getUser('user')?.username!;
+
   return interaction.reply({
-    content: `${interaction.user.username} requests info about ${
-      interaction.options.getUser('user')?.username
-    }`,
+    content: `Profile of ${profileUsername}: nickname: ${
+      profiles.get(profileUsername)?.nickname
+    }, name: ${profiles.get(profileUsername)?.name}`,
     ephemeral: true,
   });
 }
