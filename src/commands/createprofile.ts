@@ -30,6 +30,7 @@ export async function execute(interaction: CommandInteraction, client: Client) {
   profiles.set(interaction.user.username, {
     nickname: interaction.options.getString('nickname')!,
     name: interaction.options.getString('name')!,
+    about: interaction.options.getString('bio')!,
   });
 
   return interaction.reply({
