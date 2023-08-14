@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, Client } from 'discord.js';
+import { CommandInteraction, Client, Attachment } from 'discord.js';
+import { Profile } from '../models/Profile';
 import { profiles } from '../bot';
 
 export const commandMeta = new SlashCommandBuilder()
@@ -20,23 +21,45 @@ export const commandMeta = new SlashCommandBuilder()
       .setRequired(true)
   )
   .addStringOption((option) =>
-    option.setName('avatar').setDescription('Profile picture')
-  )
-  .addStringOption((option) =>
     option.setName('bio').setDescription('Profile bio')
+  )
+  .addAttachmentOption((option) =>
+    option.setName('avatar').setDescription('Profile picture')
   );
 
 export async function execute(interaction: CommandInteraction, client: Client) {
-  profiles.set(interaction.user.username, {
-    nickname: interaction.options.getString('nickname')!,
-    name: interaction.options.getString('name')!,
-    about: interaction.options.getString('bio')!,
-  });
+  const newProfile: Profile = createProfile(interaction);
+
+  profiles.set(interaction.user.username, newProfile);
 
   return interaction.reply({
     content: `Profile created for ${
       interaction.user.username
-    } with nickname ${interaction.options.getString('nickname')}`,
+    } with nickname ${interaction.options.get('nickname')}`,
     ephemeral: true,
   });
+}
+
+function createProfile(interaction: CommandInteraction): Profile {
+  let newProfile: Profile = {
+    name: interaction.options.get('name')?.value as string,
+    nickname: interaction.options.get('nickname')?.value as string,
+  };
+
+  const attachment: Attachment | null | undefined =
+    interaction.options.get('avatar')?.attachment;
+
+  if (attachment) {
+    newProfile = { ...newProfile, avatar: attachment.url };
+  }
+
+  const about: string | undefined = interaction.options.get('bio')
+    ? (interaction.options.get('bio')?.value as string)
+    : undefined;
+
+  if (about) {
+    newProfile = { ...newProfile, about };
+  }
+
+  return newProfile;
 }

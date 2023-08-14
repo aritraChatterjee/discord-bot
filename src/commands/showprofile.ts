@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder } from '@discordjs/builders';
-import { Client, CommandInteraction, MessageEmbed } from 'discord.js';
+import { ChannelType, Client, CommandInteraction } from 'discord.js';
 import { profiles } from '../bot';
 import { Profile } from '../models/Profile';
 
@@ -19,7 +19,7 @@ export async function execute(interaction: CommandInteraction, client: Client) {
   }
 
   const channel = await client.channels.fetch(interaction.channelId);
-  if (!channel || channel.type !== 'GUILD_TEXT') {
+  if (!channel || channel.type !== ChannelType.GuildText) {
     return;
   }
 
@@ -29,19 +29,22 @@ export async function execute(interaction: CommandInteraction, client: Client) {
   const profile = profiles.get(profileUsername);
 
   if (!profile) {
-    return interaction.reply({ content: 'Profile not found', ephemeral: true });
+    return interaction.reply({
+      content: `Profile not found for ${profileUsername}`,
+      ephemeral: true,
+    });
   } else {
     const profileEmbed = createProfileEmbed(profile);
     return interaction.reply({ embeds: [profileEmbed], ephemeral: true });
   }
 }
 
-function createProfileEmbed(profile: Profile) {
-  return new MessageEmbed()
+function createProfileEmbed(profile: Profile): EmbedBuilder {
+  return new EmbedBuilder()
     .setColor(0x0099ff)
     .setTitle('Profile Information')
     .setURL('https://discord.js.org/')
-    .setThumbnail('https://i.imgur.com/AfFp7pu.png')
+    .setThumbnail(profile.avatar ?? 'https://i.imgur.com/AfFp7pu.png')
     .addFields(
       { name: 'Name', value: `${profile.name}` },
       { name: 'AKA', value: `${profile.nickname}` },
